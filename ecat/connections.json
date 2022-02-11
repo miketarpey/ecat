@@ -1,0 +1,24 @@
+{
+ "eCatalogDEV": {
+        "title": "eCatalogDEV",
+        "url": "",
+        "host": "rgcs1gd.cmpfsaz1qdeq.us-east-2.rds.amazonaws.com",
+        "service": "rgcs1gd",
+        "port": 1521,
+        "sid": "",
+        "schema": "",
+        "user": "ecat",
+        "pw": "ecat8#$"
+    },
+ "eCatalogPRD": {
+        "title": "eCatalogPRD",
+        "url": "",
+        "host": "rgcs1gp.cmqv23cr55f2.us-east-2.rds.amazonaws.com",
+        "service": "rgcs1gp",
+        "port": 1521,
+        "sid": "",
+        "schema": "",
+        "user": "ecat",
+        "pw": "ecat8#$"
+    }
+}
