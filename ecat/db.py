@@ -2,11 +2,15 @@ import pypyodbc as pyodbc
 import cx_Oracle
 import pandas as pd
 import json
-from psycopg2 import connect as pg_connect
+import psycopg2
 
 import logging
 
 logger = logging.getLogger(__name__)
+
+format = '%(asctime)s %(message)s'
+datefmt='%d %b %y %H:%M:%S'
+logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 class Connections():
 
@@ -62,16 +66,16 @@ class Connections():
 
         return df
 
-
-    def get_oracle_con(self, connection=None):
-        ''' Return Oracle connection and schema, schema_ctl.
+    def get_connection(self, db=None):
+        ''' Return connection and schema, schema_ctl.
 
         Examples
         --------
 
         .. code-block::
 
-            con, schema, schema_ctl = _get_oracle_con('JDE8EPA')
+            connections = Connections()
+            con = connections.get_connection('Copernicus PRD')
 
         Parameters
         ----------
@@ -82,55 +86,35 @@ class Connections():
         -------
         Oracle connection, schema and schema (control) name strings
         '''
-        host = self.connections.get('host')
-        port = self.connections.get('port')
-        sid  = self.connections.get('sid')
-        svc  = self.connections.get('service')
-        user = self.connections.get('user')
-        pw   = self.connections.get('pw')
 
-        logger.debug(f"Connection: {host}, {port}, {sid}, {svc}")
-        logger.info(f"Connection: {host}, {port}")
+        connection_details = self.connections[db]
+        host   = connection_details.get('host')
+        driver = connection_details.get('driver').lower()
+        port   = connection_details.get('port')
+        sid    = connection_details.get('sid')
+        svc    = connection_details.get('service')
+        schema = connection_details.get('schema')
+        user   = connection_details.get('user')
+        pw     = connection_details.get('pw')
 
-        dsn_tns = cx_Oracle.makedsn(host=host, port=port, service_name=svc)
-        logger.debug(dsn_tns)
+        if driver == 'oracle':
+            dsn_tns = cx_Oracle.makedsn(host=host, port=port, service_name=svc)
+            connection = cx_Oracle.connect(user, pw, dsn_tns, encoding="UTF-8")
+            logger.debug(f'TNS: {connection.dsn}')
+            logger.debug(f'Version: {connection.version}')
 
-        connection = cx_Oracle.connect(user, pw, dsn_tns, encoding="UTF-8")
-        logger.debug(f'TNS: {connection.dsn}')
-        logger.debug(f'Version: {connection.version}')
+            return connection
 
-        schema = connection_parms.get('schema').lower()
-        schema_ctl = connection_parms.get('schema').lower().replace('dta', 'ctl')
-        logger.debug(f'Schema: {schema}')
+        if driver == 'postgres':
+            try:
+                connection = psycopg2.connect(user=user, password=pw, host=host,
+                                              port=port, database=schema)
+                logger.info(f"Connected to {host}, port {port}")
+                logger.info(f"schema/database {schema}")
+                logger.debug(connection.get_dsn_parameters())
+            except Exception as error:
+                logger.info(f"Error connecting to {db} {error}")
+                return None
 
-        return connection, schema, schema_ctl
-
-
-    def get_postgres_con(self, connection=None):
-        ''' Return postgres connection for given system.
-
-        Examples
-        --------
-
-        .. code-block::
-
-            con = _get_postgres_con('beles8')
-
-        Parameters
-        ----------
-        connection_parms
-            connection parameters
-
-        Returns
-        -------
-        postgres odbc connection
-        '''
-        host = self.connections.get('host')
-        db   = self.connections.get('schema')
-        user = self.connections.get('user')
-        pw   = self.connections.get('pw')
-        con = pg_connect(host=host, dbname=db, user=user, password=pw)
-
-        logger.info(f"Connection: {host}, user:{user}")
-
-        return con
+            logger.info(f'Connection status: {connection.status}')
+            return connection
