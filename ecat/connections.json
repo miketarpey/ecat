@@ -1,6 +1,9 @@
-{
+{"oracle": {
+        "client_path": "C:/oracle/instantclient_21_3"
+	},
  "eCatalogDEV": {
         "title": "eCatalogDEV",
+        "driver": "oracle",
         "url": "",
         "host": "rgcs1gd.cmpfsaz1qdeq.us-east-2.rds.amazonaws.com",
         "service": "rgcs1gd",
@@ -12,6 +15,7 @@
     },
  "eCatalogPRD": {
         "title": "eCatalogPRD",
+        "driver": "oracle",
         "url": "",
         "host": "rgcs1gp.cmqv23cr55f2.us-east-2.rds.amazonaws.com",
         "service": "rgcs1gp",
@@ -21,10 +25,11 @@
         "user": "ecat",
         "pw": "ecat8#$"
     },
- "Copernicus PRD": {
-        "title": "Copernicus PRD",
+ "CopernicusPRD": {
+        "title": "CopernicusPRD",
+        "driver": "postgres",
         "url": "",
-        "host": "rzcpr11ep-cluster.cluster-cdtfvr9hvmga.eu-central-1.rds.amazonaws.com/rzcpr11ep?",
+        "host": "rzcpr11ep-cluster.cluster-cdtfvr9hvmga.eu-central-1.rds.amazonaws.com",
         "service": "",
         "port": 5432,
         "sid": "",
@@ -32,10 +37,11 @@
         "user": "cprnread",
         "pw": "1pK#)7fv"
     },
- "Copernicus TEST": {
-        "title": "Copernicus TEST",
+ "CopernicusTEST": {
+        "title": "CopernicusTEST",
+        "driver": "postgres",
         "url": "",
-        "host": "rzcpr11et-cluster.cluster-cnthtp6wjrkj.eu-central-1.rds.amazonaws.com/rzcpr11et?",
+        "host": "rzcpr11et-cluster.cluster-cnthtp6wjrkj.eu-central-1.rds.amazonaws.com",
         "service": "",
         "port": 5432,
         "sid": "",
@@ -43,10 +49,11 @@
         "user": "cprnread",
         "pw": "j{qAxPn9"
     },
- "Copernicus PRD": {
-        "title": "Copernicus PRD",
+ "CopernicusDEV": {
+        "title": "CopernicusDEV",
+        "driver": "postgres",
         "url": "",
-        "host": "rzcpr11ed-cluster.cluster-cacmczyh3axt.eu-central-1.rds.amazonaws.com/rzcpr11ed?",
+        "host": "rzcpr11ed-cluster.cluster-cacmczyh3axt.eu-central-1.rds.amazonaws.com",
         "service": "",
         "port": 5432,
         "sid": "",

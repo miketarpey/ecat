@@ -1,10 +1,9 @@
-import pypyodbc as pyodbc
 import cx_Oracle
-import pandas as pd
 import json
-import psycopg2
-
 import logging
+import pandas as pd
+import psycopg2
+import pypyodbc as pyodbc
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +11,21 @@ format = '%(asctime)s %(message)s'
 datefmt='%d %b %y %H:%M:%S'
 logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
+
 class Connections():
+    ''' Connections class to encapsulate connecting to databases '''
+
 
     def __init__(self, file_name=None):
         ''' '''
 
         self.connections = self.get_config(file_name, return_type='dictionary')
+
+        try:
+            client_path = self.connections['oracle'].get('client_path')
+            cx_Oracle.init_oracle_client(lib_dir=client_path)
+        except cx_Oracle.ProgrammingError as e:
+            pass
 
 
     def get_config(self, file_name=None, return_type='dataframe'):
@@ -55,9 +63,11 @@ class Connections():
 
         if return_type == 'dataframe':
             df = (pd.DataFrame(config).T).fillna('')
+            df = df[df.index != 'oracle']
 
             if 'pw' in df.columns:
                df = df.drop(columns=['pw'])
+               df = df.drop(columns=['client_path'])
 
             lowercase_cols = ['schema', 'sid', 'user']
             for col in lowercase_cols:
@@ -66,8 +76,20 @@ class Connections():
 
         return df
 
+
     def get_connection(self, db=None):
         ''' Return connection and schema, schema_ctl.
+
+        Parameters
+        ----------
+        connection
+            connection name
+
+
+        Returns
+        -------
+        Oracle connection, schema and schema (control) name strings
+
 
         Examples
         --------
@@ -77,17 +99,15 @@ class Connections():
             connections = Connections()
             con = connections.get_connection('Copernicus PRD')
 
-        Parameters
-        ----------
-        connection
-            connection name
-
-        Returns
-        -------
-        Oracle connection, schema and schema (control) name strings
         '''
+        try:
+            connection_details = self.connections[db]
+        except KeyError as e:
+            logger.info(f'Invalid environment {db}')
+            return
 
-        connection_details = self.connections[db]
+        logger.info(f'Environment: {db}')
+
         host   = connection_details.get('host')
         driver = connection_details.get('driver').lower()
         port   = connection_details.get('port')
