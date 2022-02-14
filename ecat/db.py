@@ -1,9 +1,10 @@
-import cx_Oracle
 import json
 import logging
 import pandas as pd
 import psycopg2
+import cx_Oracle
 import pypyodbc as pyodbc
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -16,10 +17,21 @@ class Connections():
     ''' Connections class to encapsulate connecting to databases '''
 
 
-    def __init__(self, file_name=None):
-        ''' '''
+    def __init__(self, filename:str=None) -> None:
+        '''
+        Parameters
+        ----------
+        filename
+            json formatted connections file (similar to tnsnames.ora)
+            if None (default) uses 'connections.json' in current directory
 
-        self.connections = self.get_config(file_name, return_type='dictionary')
+        Returns
+        -------
+        None
+
+        '''
+
+        self.connections = self.get_config(filename, return_type='dictionary')
 
         try:
             client_path = self.connections['oracle'].get('client_path')
@@ -28,12 +40,13 @@ class Connections():
             pass
 
 
-    def get_config(self, file_name=None, return_type='dataframe'):
+    def get_config(self, filename:str=None,
+                   return_type:str='dataframe') -> Union[pd.DataFrame, dict]:
         ''' get all available defined database environments
 
         Parameters
         ----------
-        file_name
+        filename
             json formatted connections file (similar to tnsnames.ora)
             if None (default) uses 'connections.json' in current directory
         return type
@@ -52,10 +65,10 @@ class Connections():
             dict_config = connections(return_type='dictionary')
 
         '''
-        if file_name == None:
-            file_name = 'connections.json'
+        if filename == None:
+            filename = 'connections.json'
 
-        with open(file_name) as f:
+        with open(filename) as f:
                 config = json.load(f)
 
         if return_type == 'dictionary':
@@ -77,18 +90,20 @@ class Connections():
         return df
 
 
-    def get_connection(self, db=None):
+    def get_connection(self, db:str=None)\
+                       -> Union[psycopg2.extensions.connection,
+                                cx_Oracle.Connection]:
         ''' Return connection and schema, schema_ctl.
 
         Parameters
         ----------
-        connection
-            connection name
+        db
+            database connection name
 
 
         Returns
         -------
-        Oracle connection, schema and schema (control) name strings
+        Oracle connection or, Postgres connection
 
 
         Examples
