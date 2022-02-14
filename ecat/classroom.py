@@ -88,6 +88,8 @@ class artikel():
         # Make sure that productcode_id is numeric/integer
         self.df.PRODUCTCODE_ID = pd.to_numeric(self.df.PRODUCTCODE_ID, errors='ignore')
 
+        self.df = self.df.sort_values('PRODUCTCODE_ID').reset_index(drop=True)
+
         total_rows, total_cols = self.df.shape
         logger.info(f'{self.filename}: {query}, {total_rows} rows, {total_cols} columns.')
 

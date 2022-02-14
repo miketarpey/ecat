@@ -36,7 +36,6 @@ class STATUS():
 class product_code():
     ''' Class to encapsulate the productcode and p_productcode tables in ecat database '''
 
-
     def __init__(self, published: bool=False, keys: list=None,
             connection: Union[cx_Oracle.Connection]=None) -> None:
         ''' product_code / p_productcode constructor
@@ -67,11 +66,40 @@ class product_code():
             self.df = self.df.sort_values('PRODUCTCODE_ID')
             self.df = self.df.reset_index(drop=True)
 
+            self.set_common_cols()
+
             total_rows, total_cols = self.df.shape
             logger.info(f'{self.table}: {total_rows} rows, {total_cols} columns.')
 
-    def get_dataframe(self)-> pd.DataFrame:
-        return self.df
+    def set_common_cols(self) -> None:
+        ''' Define commmon fields between classroom CSV, product and p_product'''
+
+        self.common_cols = ['PRODUCTCODE_ID', 'CATALOG_ID', 'BAXTER_PRODUCTCODE',
+                'UMDNS', 'ATC', 'CE_MARK_CODE', 'CE_MARK_CLASS',
+                'MINIMUM_STORAGE_TEMPERATURE', 'MAXIMUM_STORAGE_TEMPERATURE',
+                'MINIMUM_STORAGE_TEMPERATURE_UM', 'MAXIMUM_STORAGE_TEMPERATURE_UM',
+                'PRODUCT_NAME', 'LONG_DESCRIPTION', 'TRADEMARK', 'MANUFACTURER',
+                'VOLUME', 'VOLUME_UOM', 'CONCENTRATION', 'GAUGE', 'GAUGE_UOM',
+                'LENGTH', 'LENGTH_UOM', 'INFUSION_DURATION', 'INFUSION_DURATION_UOM',
+                'STERILISATION_METHOD', 'ARTERIAL_VENOUS', 'TACTILE_I_D', 'COLOR_CODE',
+                'PD_DELIVERY_SYSTEM', 'CONNECTOLOGY', 'ANTI_REFLUX', 'DEHP_FREE',
+                'PVC_FREE', 'LATEX_FREE', 'LATEX_FREE_COMMENT', 'LIPID_RESISTANT',
+                'NEEDLE_PROTECTOR', 'DIALYSER_SURFACE_AREA', 'WASTE_DISPOSAL',
+                'OVERPOUCH_REQUIRED', 'KEYWORDS', 'CSS_STATUS', 'GHX_STATUS',
+                'REGULATORY_COMMENT', 'DATE_LASTMODIFIED', 'LAST_USER', 'SPC_URL',
+                'DATE_APPROVED']
+
+    def get_dataframe(self, common_fields_only:bool=True)-> pd.DataFrame:
+
+        if common_fields_only:
+            dx = self.df[self.common_cols]
+        else:
+            dx = self.df
+
+        total_rows, total_cols = dx.shape
+        logger.info(f'{self.table}: {total_rows} rows, {total_cols} columns.')
+
+        return dx
 
 
 class reimport_log():
