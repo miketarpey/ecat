@@ -25,7 +25,6 @@ class artikel():
     def __init__(self, filename:Path , delimiter:str='\t',
                  encoding: str='utf-8') -> None:
         '''
-
         Parameters
         ----------
         filename
@@ -38,6 +37,7 @@ class artikel():
         Returns
         -------
         None
+
         '''
 
         self.filename = filename
@@ -71,6 +71,16 @@ class artikel():
 
     def filter_data(self, filter_date: datetime=None) -> pd.DataFrame:
         ''' Filter item data based on DATE_LASTMODIFIED '''
+
+        # Note: Records where user LAST_USER = 'JDE_Upload_prd' are
+        # filtered out. Only actual 'user' updates need to be considered.
+        query = "LAST_USER.str.lower() == 'jde_upload_prd'"
+        filtered_rows = self.df.query(query).shape[0]
+        msg = f'{self.filename}: Filtered {filtered_rows} rows with LAST_USER=jde_upload_prd'
+        logger.info(msg)
+
+        query = "LAST_USER.str.lower() != 'jde_upload_prd'"
+        self.df = self.df.query(query)
 
         query = f"DATE_LASTMODIFIED>='{filter_date}'"
         self.df = self.df.query(query)

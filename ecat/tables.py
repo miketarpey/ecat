@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
 class STATUS():
-    ''' Class to encapsulate e-Catalogue status values '''
+    ''' Helper class to encapsulate e-Catalogue status values '''
 
     def __init__(self):
 
@@ -37,7 +37,15 @@ class product_code():
 
 
     def __init__(self, published=False, keys=None, connection=None):
-        ''' '''
+        ''' product_code / p_productcode constructor
+
+        Parameters
+        ----------
+        published
+            Default False. Retrieve product_code table data
+            If True, retrieve p
+
+        '''
         if published:
             self.table = 'p_productcode'
         else:
