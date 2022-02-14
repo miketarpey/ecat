@@ -85,6 +85,9 @@ class artikel():
         query = f"DATE_LASTMODIFIED>='{filter_date}'"
         self.df = self.df.query(query)
 
+        # Make sure that productcode_id is numeric/integer
+        self.df.PRODUCTCODE_ID = pd.to_numeric(self.df.PRODUCTCODE_ID, errors='ignore')
+
         total_rows, total_cols = self.df.shape
         logger.info(f'{self.filename}: {query}, {total_rows} rows, {total_cols} columns.')
 
@@ -96,7 +99,7 @@ class artikel():
 
         missing = False
         total_isna = self.df.query("PRODUCTCODE_ID.isna()").shape[0]
-        total_not_numeric = self.df.query("~PRODUCTCODE_ID.str.isnumeric()").shape[0]
+        total_not_numeric = self.df.loc[~self.df['PRODUCTCODE_ID'].astype(str).str.isnumeric()].shape[0]
 
         if total_isna > 0 or total_not_numeric:
             logger.info(f'<< ERROR >>')
@@ -109,7 +112,8 @@ class artikel():
     def get_keys(self) -> list:
         ''' Return list of PRODUCTCODE_ID + BAXTER_PRODUCTCODE '''
 
-        concated_keys = self.df.PRODUCTCODE_ID + self.df.BAXTER_PRODUCTCODE
+        concated_keys = self.df.PRODUCTCODE_ID.astype(str) +\
+                        self.df.BAXTER_PRODUCTCODE.astype(str)
         keys = '(' + ', '.join(list("'" + concated_keys + "'" )) + ')'
 
         return keys

@@ -3,6 +3,7 @@ import cx_Oracle
 import logging
 import numpy as np
 import pandas as pd
+from typing import Union
 
 logger = logging.getLogger(__name__)
 
@@ -22,10 +23,10 @@ class STATUS():
                        10263: 'PendingProductLaunch', 10264: 'Obsolete',
                        1000218: 'NotThisCompany'}
 
-    def get(self, key):
+    def get(self, key:str) -> str:
         return self.status.get(key)
 
-    def get_dataframe(self):
+    def get_dataframe(self) -> pd.DataFrame:
         self.df = pd.DataFrame([self.status]).T.reset_index()
         self.df.columns = ['status', 'status_description']
 
@@ -36,14 +37,17 @@ class product_code():
     ''' Class to encapsulate the productcode and p_productcode tables in ecat database '''
 
 
-    def __init__(self, published=False, keys=None, connection=None):
+    def __init__(self, published: bool=False, keys: list=None,
+            connection: Union[cx_Oracle.Connection]=None) -> None:
         ''' product_code / p_productcode constructor
 
         Parameters
         ----------
         published
             Default False. Retrieve product_code table data
-            If True, retrieve p
+            If True, retrieve p_productcode table data
+        keys
+            A list of keys ()
 
         '''
         if published:
@@ -59,11 +63,14 @@ class product_code():
                       where productcode_id||baxter_productcode in {keys}'''
             self.connection = connection
             self.df = pd.read_sql(sql, connection)
+            self.df = self.df.fillna(np.NaN)
+            self.df = self.df.sort_values('PRODUCTCODE_ID')
+            self.df = self.df.reset_index(drop=True)
 
             total_rows, total_cols = self.df.shape
             logger.info(f'{self.table}: {total_rows} rows, {total_cols} columns.')
 
-    def get_dataframe(self):
+    def get_dataframe(self)-> pd.DataFrame:
         return self.df
 
 
@@ -71,14 +78,15 @@ class reimport_log():
     ''' Class to encapsulate the reimport_log table in ecat database '''
 
 
-    def __init__(self, table='test_bp_reimport_log', connection=None):
+    def __init__(self, table:str='test_bp_reimport_log',
+                 connection: Union[cx_Oracle.Connection]=None) -> None:
         ''' '''
 
         self.table = table
         self.connection = connection
 
 
-    def get_last_update(self):
+    def get_last_update(self) -> datetime:
         ''' Get last_update from table, return datetime object
         '''
 
@@ -97,7 +105,7 @@ class reimport_log():
         return last_updated
 
 
-    def insert(self, file_updated):
+    def insert(self, file_updated: datetime) -> None:
         ''' insert reimport log record'''
 
         try:
@@ -121,13 +129,14 @@ class reimport():
     ''' Class to encapsulate the reimport table in ecat database '''
 
 
-    def __init__(self, table='temp_bp_class_reimport_data', connection=None):
+    def __init__(self, table: str='temp_bp_class_reimport_data',
+                 connection: Union[cx_Oracle.Connection]=None) -> None:
         ''' '''
         self.table = table
         self.connection = connection
 
 
-    def get_columns(self):
+    def get_columns(self) -> list:
 
         sql = f'select * from {self.table} where 1=2'
         df = pd.read_sql(sql, self.connection).fillna(np.nan)
@@ -135,7 +144,7 @@ class reimport():
         return df.columns
 
 
-    def upload(self, df=None):
+    def upload(self, df: pd.DataFrame=None) -> None:
         '''
         Upload pandas dataframe containing converted/validated reimport data
         to TEMP_BP_CLASS_REIMPORT_DATA table.
@@ -189,7 +198,7 @@ class reimport():
         logger.info(f'{self.table}: Inserted {df.shape[0]} rows.')
 
 
-    def _prepare_rowvalues_for_db(self, df):
+    def _prepare_rowvalues_for_db(self, df:pd.DataFrame) -> list:
         '''
         '''
         dx = df.copy(deep=True)
