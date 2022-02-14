@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging
 import re
+from pathlib import Path
 import numpy as np
 import pandas as pd
 
@@ -12,10 +13,32 @@ logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
 class artikel():
-    ''' Class to encapsulate the artikel/item (CSV) data '''
+    ''' Class to encapsulate the artikel/item (CSV) data
 
+    Example
+    -------
+    filename = Path('inputs') / 'export_artikel_20220204200253.csv'
+    csv_data = artikel(filename)
 
-    def __init__(self, filename, encoding='utf-8', delimiter='\t'):
+    '''
+
+    def __init__(self, filename:Path , delimiter:str='\t',
+                 encoding: str='utf-8') -> None:
+        '''
+
+        Parameters
+        ----------
+        filename
+            CSV file name
+        delimiter
+            Default '\t' (TAB)
+        encoding
+            Default 'utf-8'
+
+        Returns
+        -------
+        None
+        '''
 
         self.filename = filename
         df = pd.read_csv(self.filename, encoding=encoding,
@@ -33,8 +56,9 @@ class artikel():
         logger.info(f'{self.filename}: {total_rows} rows, {total_cols} columns.')
 
 
-    def get_filename_date(self):
-        ''' extract date value from filename  '''
+    def get_filename_date(self) -> datetime:
+        ''' Extract date value from filename  '''
+
         match = re.search('(\d+)', self.filename.as_posix())
         if not match:
             logger.info(f'{self.filename}: Invalid filename')
@@ -45,9 +69,9 @@ class artikel():
             return new_date
 
 
-    def filter_data(self, filter_date=None):
-        '''
-        '''
+    def filter_data(self, filter_date: datetime=None) -> pd.DataFrame:
+        ''' Filter item data based on DATE_LASTMODIFIED '''
+
         query = f"DATE_LASTMODIFIED>='{filter_date}'"
         self.df = self.df.query(query)
 
@@ -57,9 +81,9 @@ class artikel():
         return self.df
 
 
-    def is_missing_data(self):
-        '''
-        '''
+    def is_missing_data(self) -> bool:
+        ''' Determine whether PRODUCTCODE_ID is numeric or not null '''
+
         missing = False
         total_isna = self.df.query("PRODUCTCODE_ID.isna()").shape[0]
         total_not_numeric = self.df.query("~PRODUCTCODE_ID.str.isnumeric()").shape[0]
@@ -72,9 +96,9 @@ class artikel():
         return missing
 
 
-    def get_keys(self):
-        '''
-        '''
+    def get_keys(self) -> list:
+        ''' Return list of PRODUCTCODE_ID + BAXTER_PRODUCTCODE '''
+
         concated_keys = self.df.PRODUCTCODE_ID + self.df.BAXTER_PRODUCTCODE
         keys = '(' + ', '.join(list("'" + concated_keys + "'" )) + ')'
 
