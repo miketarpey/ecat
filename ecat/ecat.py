@@ -6,6 +6,7 @@ from ecat.tables import reimport_log, reimport, product_code
 from ecat.db import Connections
 from ecat.classroom import artikel
 from ecat.analysis import generate_analysis, compare_data
+from ecat.version import __version__
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -43,8 +44,8 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
     filename
         name of CSV extract file containing articles/item data from class.room
     database
-        name of e-Catalogue database. Valid values are:
-        eCatalogDEV, eCatalogPRD
+        name of e-Catalogue database.
+        Valid values are: eCatalogDEV, eCatalogPRD
     last_update
         Default None. If None, use the last_update from reimport log table.
         Can be specified to manually override reimport log table value or
@@ -53,9 +54,11 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
         Default False. If True, upload/merge CSV data with reimport table.
         Update 'last updated' on reimport log table with filename date.
 
+
     Returns
     -------
     None
+
 
     Example
     -------
@@ -66,6 +69,8 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
     classroom_upload(filename=filename, database='eCatalogDEV',
                     last_update='20211102', update=True)
     '''
+    logger.info(f'ecat version {__version__}')
+
     connections = Connections()
     con = connections.get_connection(database)
     if con is None:
@@ -103,7 +108,7 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
         return
 
     if not update:
-          logger.info('<< ::TEST:: NO UPDATES MADE >>')
+        logger.info('<< ::TEST:: NO UPDATES MADE >>')
     else:
         logger.info('')
         logger.info('3. Upload classroom item data')
@@ -132,23 +137,27 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
        a) Items common to classroom and products
        b) Items common to classroom and p_products
 
+
     Parameters
     ----------
     filename
         name of CSV extract file containing articles/item data from class.room
     database
-        name of e-Catalogue database. Valid values are:
-        eCatalogDEV, eCatalogPRD
+        name of e-Catalogue database.
+        Valid values are: eCatalogDEV, eCatalogPRD
     last_update
         Default None. If None, use the last_update from reimport log table.
         Can be specified to manually override reimport log table value or
         used for testing.
+
 
     Returns
     -------
     None
 
     '''
+    logger.info(f'ecat version {__version__}')
+
     connections = Connections()
     con = connections.get_connection(database)
     if con is None:

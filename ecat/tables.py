@@ -40,7 +40,7 @@ class product_code():
 
         if keys is None:
             logger.info(f'{self.table}: You MUST pass a list of keys')
-            return None
+            return
         else:
             sql = f'''select * from {self.table}
                       where productcode_id||baxter_productcode in {keys}'''
@@ -119,7 +119,7 @@ class reimport_log():
         except cx_Oracle.DatabaseError as e:
             self.connection.rollback()
             logger.info(e)
-            return None
+            return
 
         logger.info(f'{self.table}: Inserted row: date_reimport_ts={updated}')
 
@@ -153,7 +153,7 @@ class reimport():
 
         Returns
         -------
-            None
+        None
         '''
         try:
             logger.info(f'{self.table}: Clearing(truncate).')
@@ -178,19 +178,15 @@ class reimport():
                 logger.info(lastGoodRow)
                 logger.info("failedRow: " + str(error.offset))
                 logger.info(failedRow)
-                raise
 
         except cx_Oracle.DatabaseError as e:
             self.connection.rollback()
             logger.info(statement)
             logger.info(e)
-            raise
-            pass
 
         finally:
             self.connection.commit()
             cursor.close()
-            pass
 
         logger.info(f'{self.table}: Inserted {df.shape[0]} rows.')
 
