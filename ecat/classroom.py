@@ -56,7 +56,7 @@ class artikel():
 
         self.df = df
         total_rows, total_cols = self.df.shape
-        logger.info(f'{self.filename}: {total_rows} rows, {total_cols} columns.')
+        logger.info(f'{self.filename}: Imported {total_rows} rows, {total_cols} columns.')
 
 
     def get_filename_date(self) -> datetime:
@@ -77,13 +77,12 @@ class artikel():
 
         # Note: Records where user LAST_USER = 'JDE_Upload_prd' are
         # filtered out. Only actual 'user' updates need to be considered.
-        query = "LAST_USER.str.lower() == 'jde_upload_prd'"
-        filtered_rows = self.df.query(query).shape[0]
-        msg = f'{self.filename}: Filtered {filtered_rows} rows with LAST_USER=jde_upload_prd'
-        logger.info(msg)
-
         query = "LAST_USER.str.lower() != 'jde_upload_prd'"
         self.df = self.df.query(query)
+
+        total_rows, total_cols = self.df.shape
+        logger.info(f'{self.filename}: Filtered with query: {query}')
+        logger.info(f'{self.filename}: Filtered {total_rows} rows, {total_cols} columns.')
 
         query = f"DATE_LASTMODIFIED>='{filter_date}'"
         self.df = self.df.query(query)
@@ -94,7 +93,8 @@ class artikel():
         self.df = self.df.sort_values('PRODUCTCODE_ID').reset_index(drop=True)
 
         total_rows, total_cols = self.df.shape
-        logger.info(f'{self.filename}: {query}, {total_rows} rows, {total_cols} columns.')
+        logger.info(f'{self.filename}: Filtered with query: {query}')
+        logger.info(f'{self.filename}: Filtered {total_rows} rows, {total_cols} columns.')
 
         return self.df
 
@@ -102,6 +102,7 @@ class artikel():
     def get_dataframe(self, common_fields_only:bool=True)-> pd.DataFrame:
 
         if common_fields_only:
+            logger.info(f'{self.filename}: <<Common>> columns only')
             dx = self.df[self.common_cols]
         else:
             dx = self.df

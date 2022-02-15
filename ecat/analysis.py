@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 def generate_analysis(df_classroom: pd.DataFrame, df_product: pd.DataFrame,
                       df_p_product: pd.DataFrame,
-                      filename: str='outputs/ECAT_Analysis_summary.xlsx') -> pd.DataFrame:
+                      filename: str='outputs/ECAT_Classroom_Item_Analysis.xlsx') -> pd.DataFrame:
     '''
     Create a dataframe summarising the class_room item code, its 'status'
     and the corresponding information of whether the item exists in the

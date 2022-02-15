@@ -16,27 +16,27 @@ datefmt='%d %b %y %H:%M:%S'
 logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
-def classroom_upload(filename: str=None, database: str='eCatalogDEV',
+def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
         last_update: Union[None, str]=None, update: bool=False) -> None:
     ''' Upload classroom item data to the Baxter eCatalogue database.
 
     The function attempts to capture the process of updating the e-Catalogue
     database with class.room database item data:
 
-    1. For given CSV file import, validate & transform to a pandas dataframe.
+    - For given CSV file import, validate & transform to a pandas dataframe.
 
-    2. Make a connection to test/production eCatalogue database
+    - Make a connection to test/production eCatalogue database
 
-    3. Read reimport_log table to determine last time reimport table
-       was updated. Use this date to filter out records in CSV file that
-       have been 'updated' since this date.
+    - Read reimport_log table to determine last time reimport table
+    - was updated. Use this date to filter out records in CSV file that
+    - have been 'updated' since this date.
 
-    4. Filter the CSV data using the last_updated date.
+    - Filter the CSV data using the last_updated date.
 
-    5. Make a connection to the reimport table, check that the columns
-       match what is already identified in the CSV data file.
+    - Make a connection to the reimport table, check that the columns
+    - match what is already identified in the CSV data file.
 
-    6. If no 'missing data' in the CSV, upload the CSV to the reimport table.
+    - If no 'missing data' in the CSV, upload the CSV to the reimport table.
 
 
     Parameters
@@ -72,15 +72,17 @@ def classroom_upload(filename: str=None, database: str='eCatalogDEV',
     if con is None:
         return
 
-    classroom_data = artikel(filename)
-
     if last_update is None:
         log_table = reimport_log(connection=con)
         last_update = log_table.get_last_update()
     else:
         last_update = datetime.strptime(last_update, '%Y%m%d')
+        logger.info('')
         logger.info('<< ::TEST:: RE-IMPORT DATE - MANUAL OVERRIDE >>')
 
+    logger.info('')
+    logger.info('1. Import classroom data, filter')
+    classroom_data = artikel(filename)
     csv_file_date = classroom_data.get_filename_date()
     if csv_file_date < last_update:
         msg = f'CSV file date {csv_file_date} < last DB update {last_update}'
@@ -95,6 +97,8 @@ def classroom_upload(filename: str=None, database: str='eCatalogDEV',
     # FIX:: PRODUCTCODE_ID needs to be manually set to integer (?, why?)
     df.PRODUCTCODE_ID = pd.to_numeric(df.PRODUCTCODE_ID)
 
+    logger.info('')
+    logger.info('2. Get Reimport table meta-data')
     reimport_table = reimport(connection=con)
     reimport_columns = reimport_table.get_columns()
     if list(df.columns) != list(reimport_columns):
@@ -105,26 +109,30 @@ def classroom_upload(filename: str=None, database: str='eCatalogDEV',
     if not update:
           logger.info('<< ::TEST:: NO UPDATES MADE >>')
     else:
+        logger.info('')
+        logger.info('3. Upload classroom item data')
         reimport_table.upload(df)
 
+        logger.info('')
+        logger.info('4. Update reimport_log with last update')
         log_table = reimport_log(connection=con)
         log_table.insert(last_update)
 
 
-def classroom_analyse(filename: str=None, database: str='eCatalogDEV',
+def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
         last_update: Union[None, str]=None) -> None:
     '''  Analyse classroom item data before updating Baxter eCatalogue database.
 
     This function analyses/compares classroom item data.
 
-    1. Get classroom CSV data, filter by date and identify all item 'keys'
-       to allow retrieval of corresponding product and p_product data.
+    - Get classroom CSV data, filter by date and identify all item 'keys'
+      to allow retrieval of corresponding product and p_product data.
 
-    2. Analyse/compare classroom items with corresponding items in eCAT DB.
-       Generate Excel workbook showing item, status and whether or not the
-       classroom item exists in the eCAT product and p_product tables.
+    - Analyse/compare classroom items with corresponding items in eCAT DB.
+      Generate Excel workbook showing item, status and whether or not the
+      classroom item exists in the eCAT product and p_product tables.
 
-    3. Generate two further 'difference' Excel workbooks showing:
+    - Generate two further 'difference' Excel workbooks showing:
        a) Items common to classroom and products
        b) Items common to classroom and p_products
 
@@ -150,6 +158,7 @@ def classroom_analyse(filename: str=None, database: str='eCatalogDEV',
     if con is None:
         return
 
+    logger.info('')
     classroom_data = artikel(filename)
 
     if last_update is None:
@@ -157,24 +166,29 @@ def classroom_analyse(filename: str=None, database: str='eCatalogDEV',
         last_update = log_table.get_last_update()
     else:
         last_update = datetime.strptime(last_update, '%Y%m%d')
+        logger.info('')
         logger.info('<< ::TEST:: RE-IMPORT DATE - MANUAL OVERRIDE >>')
 
-    # 1. Identify classroom item keys
-    # Using keys, get corresponding product and p_product data
+    logger.info('')
+    logger.info('1. Import classroom data, filter')
     df_classroom = (classroom_data.filter_data(filter_date=last_update)
                                   .sort_values('PRODUCTCODE_ID'))
     classroom_keys = classroom_data.get_keys()
 
+    logger.info('')
+    logger.info('2. Using classroom item keys, get productcode, p_productcode')
     product = product_code(keys=classroom_keys, published=False, connection=con)
     df_product = product.get_dataframe(common_fields_only=True)
 
     p_product = product_code(keys=classroom_keys, published=True, connection=con)
     df_p_product = p_product.get_dataframe(common_fields_only=True)
 
-    # 2. Analysis of ALL classroom items (whether or not in eCAT DB)
+    logger.info('')
+    logger.info('3. Analyse classroom items with eCAT DB product data')
     df_analysis = generate_analysis(df_classroom, df_product, df_p_product)
 
-    # 3. Analyse/compare common fields/rows between classroom and ecat DB
+    logger.info('')
+    logger.info('4. Compare differences between common classroom & eCAT DB items')
     df_common_classroom = classroom_data.get_dataframe(common_fields_only=True)
     classroom_items = df_common_classroom['PRODUCTCODE_ID']
 
@@ -188,6 +202,7 @@ def classroom_analyse(filename: str=None, database: str='eCatalogDEV',
     df_classroom_p_product = df_common_classroom[classroom_items.isin(keys)]
     df_classroom_p_product = df_classroom_p_product.reset_index(drop=True)
 
+    logger.info('')
     filename='outputs/ECAT_CSV_vs_PRODUCT.xlsx'
     df_compare = compare_data(df_classroom_product, df_product, df_classroom,
                               table1='csv', table2='product', filename=filename)

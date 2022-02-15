@@ -63,6 +63,7 @@ class product_code():
     def get_dataframe(self, common_fields_only:bool=True)-> pd.DataFrame:
 
         if common_fields_only:
+            logger.info(f'{self.table}: <<Common>> columns only')
             dx = self.df[self.common_cols]
         else:
             dx = self.df
