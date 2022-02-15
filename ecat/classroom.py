@@ -135,7 +135,7 @@ class artikel():
             return True
 
         # FIX:: PRODUCTCODE_ID needs to be manually set to integer (?, why?)
-        df.PRODUCTCODE_ID = pd.to_numeric(df.PRODUCTCODE_ID)
+        self.df.PRODUCTCODE_ID = pd.to_numeric(self.df.PRODUCTCODE_ID)
 
         return False
 
