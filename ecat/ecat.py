@@ -1,12 +1,12 @@
-from datetime import datetime
-from ecat.analysis import generate_analysis, compare_data
-from ecat.classroom import artikel
-from ecat.db import Connections
-from ecat.tables import reimport_log, reimport, product_code
-from pathlib import Path
-from typing import Union
-import logging
 import pandas as pd
+import logging
+from typing import Union
+from pathlib import Path
+from ecat.tables import reimport_log, reimport, product_code
+from ecat.db import Connections
+from ecat.classroom import artikel
+from ecat.analysis import generate_analysis, compare_data
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -90,9 +90,8 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
         return
 
     df = classroom_data.filter_data(filter_date=last_update)
-    if classroom_data.is_missing_data():
+    if classroom_data.invalid_data():
         return
-
 
     logger.info('')
     logger.info('2. Get Reimport table meta-data')
@@ -170,6 +169,10 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
     logger.info('1. Import classroom data, filter')
     df_classroom = (classroom_data.filter_data(filter_date=last_update)
                                   .sort_values('PRODUCTCODE_ID'))
+
+    if classroom_data.invalid_data():
+        return
+
     classroom_keys = classroom_data.get_keys()
 
     logger.info('')

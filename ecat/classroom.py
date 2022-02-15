@@ -110,7 +110,7 @@ class artikel():
         return dx
 
 
-    def is_missing_data(self) -> bool:
+    def invalid_data(self) -> bool:
         ''' Determine whether PRODUCTCODE_ID is numeric or not null '''
 
         invalid_data = False
@@ -119,7 +119,7 @@ class artikel():
         total_isna = df_isna.shape[0]
         if total_isna > 0:
             invalid_data = True
-            logger.info(f'ERROR: Null product_id = {total_isna}')
+            logger.info(f'ERROR: Null product_id -> {total_isna} rows')
             filename='outputs/ECAT_null_products.xlsx'
             write_excel(df_isna, filename=filename)
 
@@ -127,7 +127,7 @@ class artikel():
         total_not_numeric = df_not_numeric.shape[0]
         if total_not_numeric > 0:
             invalid_data = True
-            logger.info(f'ERROR: Non-numeric product_id = {total_not_numeric}')
+            logger.info(f'ERROR: Non-numeric product_id -> {total_not_numeric} rows')
             filename='outputs/ECAT_Non_numeric_products.xlsx'
             write_excel(df_not_numeric, filename=filename)
 
