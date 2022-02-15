@@ -28,6 +28,10 @@ class product_code():
         keys
             A list of keys ()
 
+        Returns
+        -------
+        None
+
         '''
         if published:
             self.table = 'p_productcode'

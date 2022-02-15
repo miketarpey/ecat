@@ -16,7 +16,7 @@ Updating the e-Catalogue database with class.room database item data
 
 6. If no 'missing data' in the CSV, upload the CSV to the reimport table.
 '''
-from ecat.tables import reimport_log, reimport, product_code, STATUS
+from ecat.tables import reimport_log, reimport, product_code
 from ecat.classroom import artikel
 from ecat.db import Connections
 import pandas as pd
