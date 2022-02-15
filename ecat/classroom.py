@@ -2,6 +2,7 @@ import re
 import pandas as pd
 import numpy as np
 import logging
+from ecat.xl import write_excel
 from pathlib import Path
 from ecat.constants import COMMON_COLS
 from datetime import datetime
@@ -112,13 +113,25 @@ class artikel():
     def is_missing_data(self) -> bool:
         ''' Determine whether PRODUCTCODE_ID is numeric or not null '''
 
-        total_isna = self.df.query("PRODUCTCODE_ID.isna()").shape[0]
-        total_not_numeric = self.df.loc[~self.df['PRODUCTCODE_ID'].astype(str).str.isnumeric()].shape[0]
+        invalid_data = False
 
-        if total_isna > 0 or total_not_numeric:
-            logger.info(f'<< ERROR >>')
-            logger.info(f'total_null_product_id = {total_isna}')
-            logger.info(f'total_not_numeric_product_id = {total_not_numeric}')
+        df_isna = self.df.query("PRODUCTCODE_ID.isna()")
+        total_isna = df_isna.shape[0]
+        if total_isna > 0:
+            invalid_data = True
+            logger.info(f'ERROR: Null product_id = {total_isna}')
+            filename='outputs/ECAT_null_products.xlsx'
+            write_excel(df_isna, filename=filename)
+
+        df_not_numeric = self.df.loc[~self.df['PRODUCTCODE_ID'].astype(str).str.isnumeric()]
+        total_not_numeric = df_not_numeric.shape[0]
+        if total_not_numeric > 0:
+            invalid_data = True
+            logger.info(f'ERROR: Non-numeric product_id = {total_not_numeric}')
+            filename='outputs/ECAT_Non_numeric_products.xlsx'
+            write_excel(df_not_numeric, filename=filename)
+
+        if invalid_data:
             return True
 
         # FIX:: PRODUCTCODE_ID needs to be manually set to integer (?, why?)
