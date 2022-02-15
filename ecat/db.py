@@ -114,10 +114,10 @@ class Connections():
         try:
             connection_details = self.connections[db]
         except KeyError as e:
-            logger.info(f'Invalid environment {db}')
+            logger.info(f'Invalid database {db}')
             return
 
-        logger.info(f'Environment: {db}')
+        logger.info(f'Database: {db}')
 
         host   = connection_details.get('host')
         driver = connection_details.get('driver').lower()
