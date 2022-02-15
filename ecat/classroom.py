@@ -1,16 +1,12 @@
-from datetime import datetime
-from ecat.constants import COMMON_COLS
-import logging
 import re
-from pathlib import Path
-import numpy as np
 import pandas as pd
+import numpy as np
+import logging
+from pathlib import Path
+from ecat.constants import COMMON_COLS
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
-
-format = '%(asctime)s %(message)s'
-datefmt='%d %b %y %H:%M:%S'
-logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
 class artikel():
@@ -116,7 +112,6 @@ class artikel():
     def is_missing_data(self) -> bool:
         ''' Determine whether PRODUCTCODE_ID is numeric or not null '''
 
-        missing = False
         total_isna = self.df.query("PRODUCTCODE_ID.isna()").shape[0]
         total_not_numeric = self.df.loc[~self.df['PRODUCTCODE_ID'].astype(str).str.isnumeric()].shape[0]
 
@@ -124,8 +119,12 @@ class artikel():
             logger.info(f'<< ERROR >>')
             logger.info(f'total_null_product_id = {total_isna}')
             logger.info(f'total_not_numeric_product_id = {total_not_numeric}')
+            return True
 
-        return missing
+        # FIX:: PRODUCTCODE_ID needs to be manually set to integer (?, why?)
+        df.PRODUCTCODE_ID = pd.to_numeric(df.PRODUCTCODE_ID)
+
+        return False
 
 
     def get_keys(self) -> list:

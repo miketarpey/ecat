@@ -1,13 +1,9 @@
 import pandas as pd
+import logging
 from pathlib import Path
 from datetime import datetime
-import logging
 
 logger = logging.getLogger(__name__)
-
-format = '%(asctime)s %(message)s'
-datefmt='%d %b %y %H:%M:%S'
-logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
 def _calc_width(df):

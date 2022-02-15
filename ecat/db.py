@@ -1,16 +1,12 @@
-import json
-import logging
-import pandas as pd
-import psycopg2
-import cx_Oracle
 import pypyodbc as pyodbc
+import psycopg2
+import pandas as pd
+import logging
+import json
+import cx_Oracle
 from typing import Union
 
 logger = logging.getLogger(__name__)
-
-format = '%(asctime)s %(message)s'
-datefmt='%d %b %y %H:%M:%S'
-logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 
 
 class Connections():

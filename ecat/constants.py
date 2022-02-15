@@ -4,10 +4,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-format = '%(asctime)s %(message)s'
-datefmt='%d %b %y %H:%M:%S'
-logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
-
 
 class STATUS():
     ''' Helper class to encapsulate e-Catalogue status values '''

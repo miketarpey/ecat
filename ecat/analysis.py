@@ -1,14 +1,9 @@
-import logging
 import pandas as pd
+import logging
 from ecat.xl import write_excel
 from ecat.constants import STATUS
 
 logger = logging.getLogger(__name__)
-
-format = '%(asctime)s %(message)s'
-datefmt='%d %b %y %H:%M:%S'
-logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
-
 
 def generate_analysis(df_classroom: pd.DataFrame, df_product: pd.DataFrame,
                       df_p_product: pd.DataFrame,

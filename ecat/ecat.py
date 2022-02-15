@@ -1,13 +1,12 @@
-from ecat.tables import reimport_log, reimport, product_code
+from datetime import datetime
+from ecat.analysis import generate_analysis, compare_data
 from ecat.classroom import artikel
 from ecat.db import Connections
-from ecat.analysis import generate_analysis, compare_data
-import pandas as pd
-from typing import Union
-
+from ecat.tables import reimport_log, reimport, product_code
 from pathlib import Path
-from datetime import datetime
+from typing import Union
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +93,6 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
     if classroom_data.is_missing_data():
         return
 
-    # FIX:: PRODUCTCODE_ID needs to be manually set to integer (?, why?)
-    df.PRODUCTCODE_ID = pd.to_numeric(df.PRODUCTCODE_ID)
 
     logger.info('')
     logger.info('2. Get Reimport table meta-data')
