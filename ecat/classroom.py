@@ -1,4 +1,5 @@
 from datetime import datetime
+from ecat.constants import COMMON_COLS
 import logging
 import re
 from pathlib import Path
@@ -51,6 +52,8 @@ class artikel():
         df['CSS_STATUS'] = df['CSS_STATUS'].fillna(0).astype(int)
         df['THERAPIEGRUPPE'] = df['THERAPIEGRUPPE'].fillna(0).astype(int)
 
+        self.set_common_cols()
+
         self.df = df
         total_rows, total_cols = self.df.shape
         logger.info(f'{self.filename}: {total_rows} rows, {total_cols} columns.')
@@ -96,6 +99,19 @@ class artikel():
         return self.df
 
 
+    def get_dataframe(self, common_fields_only:bool=True)-> pd.DataFrame:
+
+        if common_fields_only:
+            dx = self.df[self.common_cols]
+        else:
+            dx = self.df
+
+        total_rows, total_cols = dx.shape
+        logger.info(f'{self.filename}: {total_rows} rows, {total_cols} columns.')
+
+        return dx
+
+
     def is_missing_data(self) -> bool:
         ''' Determine whether PRODUCTCODE_ID is numeric or not null '''
 
@@ -119,3 +135,10 @@ class artikel():
         keys = '(' + ', '.join(list("'" + concated_keys + "'" )) + ')'
 
         return keys
+
+
+    def set_common_cols(self) -> None:
+        ''' Define commmon fields between classroom CSV, product and p_product'''
+        common_cols = COMMON_COLS()
+        self.common_cols = common_cols.get()
+

@@ -1,4 +1,5 @@
 from datetime import datetime
+from ecat.constants import COMMON_COLS
 import cx_Oracle
 import logging
 import numpy as np
@@ -10,27 +11,6 @@ logger = logging.getLogger(__name__)
 format = '%(asctime)s %(message)s'
 datefmt='%d %b %y %H:%M:%S'
 logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
-
-
-class STATUS():
-    ''' Helper class to encapsulate e-Catalogue status values '''
-
-    def __init__(self):
-
-        self.status = {10257: 'NotForCatalog', 10258: 'PendingDataEntry',
-                       10259: 'PendingApproval', 10260: 'Approved',
-                       10261: 'Rejected', 10262: 'Withdrawn',
-                       10263: 'PendingProductLaunch', 10264: 'Obsolete',
-                       1000218: 'NotThisCompany'}
-
-    def get(self, key:str) -> str:
-        return self.status.get(key)
-
-    def get_dataframe(self) -> pd.DataFrame:
-        self.df = pd.DataFrame([self.status]).T.reset_index()
-        self.df.columns = ['status', 'status_description']
-
-        return self.df
 
 
 class product_code():
@@ -73,21 +53,8 @@ class product_code():
 
     def set_common_cols(self) -> None:
         ''' Define commmon fields between classroom CSV, product and p_product'''
-
-        self.common_cols = ['PRODUCTCODE_ID', 'CATALOG_ID', 'BAXTER_PRODUCTCODE',
-                'UMDNS', 'ATC', 'CE_MARK_CODE', 'CE_MARK_CLASS',
-                'MINIMUM_STORAGE_TEMPERATURE', 'MAXIMUM_STORAGE_TEMPERATURE',
-                'MINIMUM_STORAGE_TEMPERATURE_UM', 'MAXIMUM_STORAGE_TEMPERATURE_UM',
-                'PRODUCT_NAME', 'LONG_DESCRIPTION', 'TRADEMARK', 'MANUFACTURER',
-                'VOLUME', 'VOLUME_UOM', 'CONCENTRATION', 'GAUGE', 'GAUGE_UOM',
-                'LENGTH', 'LENGTH_UOM', 'INFUSION_DURATION', 'INFUSION_DURATION_UOM',
-                'STERILISATION_METHOD', 'ARTERIAL_VENOUS', 'TACTILE_I_D', 'COLOR_CODE',
-                'PD_DELIVERY_SYSTEM', 'CONNECTOLOGY', 'ANTI_REFLUX', 'DEHP_FREE',
-                'PVC_FREE', 'LATEX_FREE', 'LATEX_FREE_COMMENT', 'LIPID_RESISTANT',
-                'NEEDLE_PROTECTOR', 'DIALYSER_SURFACE_AREA', 'WASTE_DISPOSAL',
-                'OVERPOUCH_REQUIRED', 'KEYWORDS', 'CSS_STATUS', 'GHX_STATUS',
-                'REGULATORY_COMMENT', 'DATE_LASTMODIFIED', 'LAST_USER', 'SPC_URL',
-                'DATE_APPROVED']
+        common_cols = COMMON_COLS()
+        self.common_cols = common_cols.get()
 
     def get_dataframe(self, common_fields_only:bool=True)-> pd.DataFrame:
 
@@ -112,7 +79,6 @@ class reimport_log():
 
         self.table = table
         self.connection = connection
-
 
     def get_last_update(self) -> datetime:
         ''' Get last_update from table, return datetime object
@@ -163,14 +129,12 @@ class reimport():
         self.table = table
         self.connection = connection
 
-
     def get_columns(self) -> list:
 
         sql = f'select * from {self.table} where 1=2'
         df = pd.read_sql(sql, self.connection).fillna(np.nan)
 
         return df.columns
-
 
     def upload(self, df: pd.DataFrame=None) -> None:
         '''
