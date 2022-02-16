@@ -23,6 +23,7 @@ setup(
         "numpy>=1.20.0",
         "openpyxl>=3.0.6",
         "xlsxwriter>=1.3.2",
+        "jinja2",
         "cx_oracle",
         "psycopg2",
         "pypyodbc"],
