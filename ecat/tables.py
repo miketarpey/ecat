@@ -156,37 +156,33 @@ class reimport():
         None
         '''
         try:
-            logger.info(f'{self.table}: Clearing(truncate).')
+            with self.connection.cursor() as cursor:
+                sql = f'truncate table {self.table}'
+                cursor.execute(sql)
+                self.connection.commit()
+                logger.debug(f'{self.table}: {sql}.')
 
-            cursor = self.connection.cursor()
-            sql = f'truncate table {self.table}'
-            cursor.execute(sql)
-            self.connection.commit()
+                col_positions = ', '.join([f':{col}' for col in range(1, df.shape[1]+1)])
+                statement = f'insert into {self.table} values({col_positions})'
+                logger.debug(statement)
 
-            column_positions = ', '.join([f':{col}' for col in range(1, df.shape[1]+1)])
-            statement = f'insert into {self.table} values({column_positions})'
-            logger.debug(statement)
+                row_values = self._prepare_rowvalues_for_db(df)
+                cursor.executemany(statement, row_values, batcherrors=True)
+                self.connection.commit()
 
-            row_values = self._prepare_rowvalues_for_db(df)
-            cursor.executemany(statement, row_values, batcherrors=True)
-
-            for error in cursor.getbatcherrors():
-                logger.info(f'Error, {error.message}, at row offset, {error.offset}')
-                lastGoodRow = row_values[error.offset-1:error.offset]
-                failedRow = row_values[error.offset:error.offset+1]
-                logger.info("lastGoodRow: " + str(error.offset-1))
-                logger.info(lastGoodRow)
-                logger.info("failedRow: " + str(error.offset))
-                logger.info(failedRow)
+                for error in cursor.getbatcherrors():
+                    logger.info(f'Error @row {error.offset}: {error.message}')
+                    lastGoodRow = row_values[error.offset-1:error.offset]
+                    failedRow = row_values[error.offset:error.offset+1]
+                    logger.info("lastGoodRow: " + str(error.offset-1))
+                    logger.info(lastGoodRow)
+                    logger.info("failedRow: " + str(error.offset))
+                    logger.info(failedRow)
 
         except cx_Oracle.DatabaseError as e:
             self.connection.rollback()
             logger.info(statement)
             logger.info(e)
-
-        finally:
-            self.connection.commit()
-            cursor.close()
 
         logger.info(f'{self.table}: Inserted {df.shape[0]} rows.')
 
@@ -203,6 +199,6 @@ class reimport():
         row_values = dx.replace(to_replace={np.NaN: None})
         row_values = row_values.values.tolist()
 
-        logger.info(f'{self.table}: Date columns prepared for DB update')
+        logger.debug(f'{self.table}: Date columns prepared for DB update')
 
         return row_values
