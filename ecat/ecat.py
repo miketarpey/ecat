@@ -6,6 +6,7 @@ from ecat.tables import reimport_log, reimport, product_code
 from ecat.db import Connections
 from ecat.classroom import artikel
 from ecat.analysis import generate_analysis, compare_data
+from ecat.sql import get_template_config, render_sql, series_to_str
 from ecat.version import __version__
 from datetime import datetime
 
@@ -14,6 +15,8 @@ logger = logging.getLogger(__name__)
 format = '%(asctime)s %(message)s'
 datefmt='%d %b %y %H:%M:%S'
 logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
+
+logger.info(f'ecat version {__version__}')
 
 
 def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
@@ -69,8 +72,6 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
     classroom_upload(filename=filename, database='eCatalogDEV',
                     last_update='20211102', update=True)
     '''
-    logger.info(f'ecat version {__version__}')
-
     connections = Connections()
     con = connections.get_connection(database)
     if con is None:
@@ -156,8 +157,6 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
     None
 
     '''
-    logger.info(f'ecat version {__version__}')
-
     connections = Connections()
     con = connections.get_connection(database)
     if con is None:
@@ -219,3 +218,72 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
     filename='outputs/ECAT_CSV_vs_P_PRODUCT.xlsx'
     df_compare = compare_data(df_classroom_p_product, df_p_product, df_classroom,
                               table1='csv', table2='p_product', filename=filename)
+
+
+def render_sqls(filename: str=None) -> None:
+    ''' Generate rendered SQL's to update eCatalogue DB
+
+    Overview
+    --------
+
+    - Read classroom/ecat analysis workbook.
+
+    - Read template/substitution values for each of the
+      FOUR business rules (to update product/p_product) tables.
+
+    - Filter item data and extract associated item codes in
+      a 'string' list - based on the business cases above.
+
+    - Apply above values to the appropriate SQL template and
+      render/create in an SQL file in the 'outputs' directory.
+      (look in templates/templates_config.json for details)
+
+
+    Parameters
+    ----------
+
+    filename
+        Excel workbook containing list of classroom items
+        and corresponding info on whether item exists in
+        productcode and p_productcode tables in eCatalogue DB
+
+
+    Returns
+    -------
+    None
+
+    Example
+    -------
+    from ecat.ecat import render_sqls
+
+    f = 'outputs/20220215_ECAT_Classroom_Item_Analysis - TEST.xlsx'
+    render_sqls(filename=f)
+    '''
+
+    # Read classroom/ecat analysis summary Excel workbook
+    df = pd.read_excel(filename)
+
+    # Make sure column name spaces replaced with underscores
+    df.columns = df.columns.str.replace(' ', '_')
+
+    template_config = get_template_config()
+
+    stage1 = template_config['stage1']
+    result = df.query("ARTICLE_STATUS != 1000218 and PRODUCT")
+    stage1['articles'] = series_to_str(result['PRODUCTCODE_ID'])
+    render_sql(template_sql='UPDATE.sql', template_values=stage1)
+
+    stage2 = template_config['stage2']
+    result = df.query("ARTICLE_STATUS == 10260 and P_PRODUCT")
+    stage2['articles'] = series_to_str(result['PRODUCTCODE_ID'])
+    render_sql(template_sql='UPDATE.sql', template_values=stage2)
+
+    stage3 = template_config['stage3']
+    result = df.query("ARTICLE_STATUS == 10260 and not (P_PRODUCT)")
+    stage3['articles'] = series_to_str(result['PRODUCTCODE_ID'])
+    render_sql(template_sql='INSERT.sql', template_values=stage3)
+
+    stage4 = template_config['stage4']
+    result = df.query("ARTICLE_STATUS in (10257, 10262, 10263, 10264) and P_PRODUCT")
+    stage4['articles'] = series_to_str(result['PRODUCTCODE_ID'])
+    render_sql(template_sql = 'DELETE.sql', template_values=stage4)

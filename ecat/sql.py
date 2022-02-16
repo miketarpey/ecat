@@ -1,16 +1,19 @@
 import re
 import pandas as pd
+import json
 import logging
-from typing import Union, List
+from datetime import datetime
+from pathlib import Path
+from typing import Union, List, Dict
 from jinja2 import Environment, FileSystemLoader
 from copy import deepcopy
 
 logger = logging.getLogger(__name__)
 
 
-def generate_sql(template_sql:str, template_values:dict,
+def render_sql(template_sql:str, template_values:dict,
                  template_dir='templates/') -> str:
-    ''' Generate eCatalogue sql insert/update/delete statements.
+    ''' Generate eCatalogue rendered sql
 
     Parameters
     ----------
@@ -37,6 +40,15 @@ def generate_sql(template_sql:str, template_values:dict,
 
     sql = template_code.render(template_values_copy)
 
+    # Output SQL in text file
+    ts = "{:%Y%m%d_}".format(datetime.now())
+    filename = Path(template_values['rendered_SQL'])
+    filename = filename.parents[0] / f'{ts}{filename.stem}{filename.suffix}'
+    with open(filename, 'w') as f:
+        f.write(sql)
+
+    logger.info(f'{filename} created.')
+
     return sql
 
 
@@ -52,6 +64,14 @@ def series_to_str(series: pd.Series):
     -------
     str representation of Series object enclosed in parentheses.
 
+
+    Example
+    -------
+    series = pd.Series([1, 2, 3, 4, 5])
+    series = series_to_str(series)
+    series
+    >'(1, 2, 3, 4, 5)'
+
     '''
 
     str_series = ', '.join(series.astype(str).tolist())
@@ -59,3 +79,22 @@ def series_to_str(series: pd.Series):
 
     return str_series
 
+
+def get_template_config(filename: str='templates/templates_config.json') -> Dict:
+    ''' Get template setup (json) data as a dictionary
+
+    Parameters
+    ----------
+    filename
+        Default 'templates/templates_config.json'
+        Filename containing template configuration
+
+    Returns
+    -------
+    template setup by stage as a dictionary
+
+    '''
+    with open(filename) as f:
+        template_config = json.load(f)
+
+    return template_config
