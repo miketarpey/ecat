@@ -10,6 +10,10 @@ from ecat.sql import get_template_config, render_sql, series_to_str
 from ecat.version import __version__
 from datetime import datetime
 
+import warnings
+warnings.filterwarnings("ignore")
+
+
 logger = logging.getLogger(__name__)
 
 format = '%(asctime)s %(message)s'
