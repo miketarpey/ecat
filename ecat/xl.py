@@ -62,16 +62,16 @@ def write_excel(df: pd.DataFrame, filename: str='outputs/Book1.xlsx',
 
     '''
 
-    filename = Path(filename)
+    filename_ = Path(filename)
 
     if date_prefix:
         ts = "{:%Y%m%d_}".format(datetime.now())
-        filename = filename.parents[0] / f'{ts}{filename.stem}{filename.suffix}'
+        filename_ = filename_.parents[0] / f'{ts}{filename_.stem}{filename_.suffix}'
 
     # Remove underscores from column headings (they mess up formatting headings)
     columns = df.columns.str.replace('_', ' ')
 
-    with pd.ExcelWriter(filename, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(filename_, engine='xlsxwriter') as writer:
 
         df.to_excel(writer, sheet_name='Sheet1', startrow=1,
                     header=False, freeze_panes=freeze_panes, index=False)
@@ -91,4 +91,4 @@ def write_excel(df: pd.DataFrame, filename: str='outputs/Book1.xlsx',
             ws.set_column(ix, ix, width)
         # ws.set_column(0, max_col - 1, 18)
 
-    logger.info(f'{filename} ({sheet_name}) created.')
+    logger.info(f'{filename_} ({sheet_name}) created.')

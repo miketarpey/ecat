@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 logger.info(f'ecat version {__version__}')
 
 
-def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
+def classroom_upload(filename: Path, database: str='eCatalogDEV',
         last_update: Union[None, str]=None, update: bool=False) -> None:
     ''' Upload classroom item data to the Baxter eCatalogue database.
 
@@ -79,9 +79,9 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
 
     if last_update is None:
         log_table = reimport_log(connection=con)
-        last_update = log_table.get_last_update()
+        last_updated = log_table.get_last_update()
     else:
-        last_update = datetime.strptime(last_update, '%Y%m%d')
+        last_updated = datetime.strptime(last_update, '%Y%m%d')
         logger.info('')
         logger.info('<< ::TEST:: RE-IMPORT DATE - MANUAL OVERRIDE >>')
 
@@ -89,13 +89,13 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
     logger.info('1. Import classroom data, filter')
     classroom_data = artikel(filename)
     csv_file_date = classroom_data.get_filename_date()
-    if csv_file_date < last_update:
-        msg = f'CSV file date {csv_file_date} < last DB update {last_update}'
+    if csv_file_date < last_updated:
+        msg = f'CSV file date {csv_file_date} < last DB update {last_updated}'
         logger.info(msg)
         logger.info(f'NO UPDATE TO eCatalogue database.')
         return
 
-    df = classroom_data.filter_data(filter_date=last_update)
+    df = classroom_data.filter_data(filter_date=last_updated)
     if classroom_data.invalid_data():
         return
 
@@ -118,10 +118,10 @@ def classroom_upload(filename: Path=None, database: str='eCatalogDEV',
         logger.info('')
         logger.info('4. Update reimport_log with last update')
         log_table = reimport_log(connection=con)
-        log_table.insert(last_update)
+        log_table.insert(last_updated)
 
 
-def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
+def classroom_analyse(filename: Path, database: str='eCatalogDEV',
         last_update: Union[None, str]=None) -> None:
     '''  Analyse classroom item data before updating Baxter eCatalogue database.
 
@@ -167,15 +167,15 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
 
     if last_update is None:
         log_table = reimport_log(connection=con)
-        last_update = log_table.get_last_update()
+        last_updated = log_table.get_last_update()
     else:
-        last_update = datetime.strptime(last_update, '%Y%m%d')
+        last_updated = datetime.strptime(last_update, '%Y%m%d')
         logger.info('')
         logger.info('<< ::TEST:: RE-IMPORT DATE - MANUAL OVERRIDE >>')
 
     logger.info('')
     logger.info('1. Import classroom data, filter')
-    df_classroom = (classroom_data.filter_data(filter_date=last_update)
+    df_classroom = (classroom_data.filter_data(filter_date=last_updated)
                                   .sort_values('PRODUCTCODE_ID'))
 
     if classroom_data.invalid_data():
@@ -211,13 +211,13 @@ def classroom_analyse(filename: Path=None, database: str='eCatalogDEV',
     df_classroom_p_product = df_classroom_p_product.reset_index(drop=True)
 
     logger.info('')
-    filename='outputs/ECAT_CSV_vs_PRODUCT.xlsx'
+    f ='outputs/ECAT_CSV_vs_PRODUCT.xlsx'
     df_compare = compare_data(df_classroom_product, df_product, df_classroom,
-                              table1='csv', table2='product', filename=filename)
+                              table1='csv', table2='product', filename=f)
 
-    filename='outputs/ECAT_CSV_vs_P_PRODUCT.xlsx'
+    f ='outputs/ECAT_CSV_vs_P_PRODUCT.xlsx'
     df_compare = compare_data(df_classroom_p_product, df_p_product, df_classroom,
-                              table1='csv', table2='p_product', filename=filename)
+                              table1='csv', table2='p_product', filename=f)
 
 
 def render_sqls(filename: str=None) -> None:

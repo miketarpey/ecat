@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 import json
 import cx_Oracle
-from typing import Union
+from typing import Union, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Connections():
             pass
 
 
-    def get_config(self, filename:str=None,
+    def get_config(self, filename: Optional[str]=None,
                    return_type:str='dataframe') -> Union[pd.DataFrame, dict]:
         ''' get all available defined database environments
 
@@ -61,7 +61,7 @@ class Connections():
             dict_config = connections(return_type='dictionary')
 
         '''
-        if filename == None:
+        if filename is None:
             filename = 'connections.json'
 
         with open(filename) as f:
@@ -86,9 +86,9 @@ class Connections():
         return df
 
 
-    def get_connection(self, db:str=None)\
-                       -> Union[psycopg2.extensions.connection,
-                                cx_Oracle.Connection]:
+    def get_connection(self, db: str) -> Union[None,
+                                               psycopg2.extensions.connection,
+                                               cx_Oracle.Connection]:
         ''' Return connection and schema, schema_ctl.
 
         Parameters
@@ -115,7 +115,7 @@ class Connections():
             connection_details = self.connections[db]
         except KeyError as e:
             logger.info(f'Invalid database {db}')
-            return
+            return None
 
         logger.info(f'Database: {db}')
 
@@ -133,7 +133,6 @@ class Connections():
             connection = cx_Oracle.connect(user, pw, dsn_tns, encoding="UTF-8")
             logger.debug(f'TNS: {connection.dsn}')
             logger.debug(f'Version: {connection.version}')
-
             return connection
 
         if driver == 'postgres':
@@ -149,3 +148,5 @@ class Connections():
 
             logger.info(f'Connection status: {connection.status}')
             return connection
+
+        return None

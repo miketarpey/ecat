@@ -6,6 +6,7 @@ from ecat.xl import write_excel
 from pathlib import Path
 from ecat.constants import COMMON_COLS
 from datetime import datetime
+from typing import Union, List
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,7 @@ class artikel():
 
     '''
 
-    def __init__(self, filename:Path , delimiter:str='\t',
+    def __init__(self, filename:Path, delimiter:str='\t',
                  encoding: str='utf-8') -> None:
         '''
         Parameters
@@ -62,11 +63,11 @@ class artikel():
         match = re.search('(\d+)', self.filename.as_posix())
         if not match:
             logger.info(f'{self.filename}: Invalid filename')
-            return None
         else:
             parse_format = '%Y%m%d%H%M%S'
             new_date = datetime.strptime(match[1], parse_format)
-            return new_date
+
+        return new_date
 
 
     def filter_data(self, filter_date: datetime=None) -> pd.DataFrame:
@@ -140,7 +141,7 @@ class artikel():
         return False
 
 
-    def get_keys(self) -> list:
+    def get_keys(self) -> str:
         ''' Return list of PRODUCTCODE_ID + BAXTER_PRODUCTCODE '''
 
         concated_keys = self.df.PRODUCTCODE_ID.astype(str) +\

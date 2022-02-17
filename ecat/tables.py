@@ -4,7 +4,7 @@ import cx_Oracle
 import logging
 import numpy as np
 import pandas as pd
-from typing import Union
+from typing import Union, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -16,17 +16,19 @@ logging.basicConfig(level=logging.INFO, format=format, datefmt=datefmt)
 class product_code():
     ''' Class to encapsulate the productcode and p_productcode tables in ecat database '''
 
-    def __init__(self, published: bool=False, keys: list=None,
-            connection: Union[cx_Oracle.Connection]=None) -> None:
+    def __init__(self, connection: cx_Oracle.Connection, keys: str,
+                 published: bool=False, ) -> None:
         ''' product_code / p_productcode constructor
 
         Parameters
         ----------
+        connection
+            database connection object
+        keys
+            A list of keys ()
         published
             Default False. Retrieve product_code table data
             If True, retrieve p_productcode table data
-        keys
-            A list of keys ()
 
         Returns
         -------
@@ -78,16 +80,28 @@ class reimport_log():
     ''' Class to encapsulate the reimport_log table in ecat database '''
 
 
-    def __init__(self, table:str='test_bp_reimport_log',
-                 connection: Union[cx_Oracle.Connection]=None) -> None:
-        ''' '''
+    def __init__(self, connection: cx_Oracle.Connection,
+                 table:str='test_bp_reimport_log') -> None:
+        ''' reimport log constructor
+
+        Parameters
+        ----------
+        connection
+            database connection object
+        table
+            table name
+
+        Returns
+        -------
+        None
+        '''
 
         self.table = table
         self.connection = connection
 
+
     def get_last_update(self) -> datetime:
-        ''' Get last_update from table, return datetime object
-        '''
+        ''' Get last_update from table, return datetime object '''
 
         parse_format = '%d-%b-%y %I.%M.%S.000000 %p'
 
@@ -99,7 +113,6 @@ class reimport_log():
         except cx_Oracle.DatabaseError as e:
             self.connection.rollback()
             logger.info(e)
-            return None
 
         return last_updated
 
@@ -128,8 +141,8 @@ class reimport():
     ''' Class to encapsulate the reimport table in ecat database '''
 
 
-    def __init__(self, table: str='temp_bp_class_reimport_data',
-                 connection: Union[cx_Oracle.Connection]=None) -> None:
+    def __init__(self, connection: cx_Oracle.Connection,
+                 table: str='temp_bp_class_reimport_data',) -> None:
         ''' '''
         self.table = table
         self.connection = connection
@@ -141,7 +154,7 @@ class reimport():
 
         return df.columns
 
-    def upload(self, df: pd.DataFrame=None) -> None:
+    def upload(self, df: pd.DataFrame) -> None:
         '''
         Upload pandas dataframe containing converted/validated reimport data
         to TEMP_BP_CLASS_REIMPORT_DATA table.
